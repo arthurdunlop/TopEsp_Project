@@ -1,6 +1,5 @@
 using Dates
 
-#Function to return the VPL from a specific generation
 function Calculate_UFV_Valuation(generation_Collection::Vector{Float64}, discount_rate::Float64)
     Calculate_Cash_Flow_Present_Value(Build_Discounted_FCFE_Collection(generation_Collection), discount_rate)
 end
