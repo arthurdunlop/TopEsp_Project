@@ -32,3 +32,13 @@ print(vpl_Vector)
 print(sum(vpl_Vector)/length(vpl_Vector))
 print(minimum(vpl_Vector))
 print(maximum(vpl_Vector))
+
+interval_vector = range(0, stop=1, length=100)
+for value in interval_vector
+    println(value)
+end
+
+# Compute the outer product of the two vectors
+matrix_from_multiplication = vpl_Vector * transpose(interval_vector)
+
+println(matrix_from_multiplication)
