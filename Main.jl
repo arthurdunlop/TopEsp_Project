@@ -1,3 +1,6 @@
+using Plots
+using Statistics
+using StatsPlots
 include("ValuationFunctions.jl")
 include("GenerationFunctions.jl")
 
@@ -29,7 +32,7 @@ while counter < 1000
 end
 
 print(vpl_Vector)
-print(sum(vpl_Vector)/length(vpl_Vector))
+print(mean(vpl_Vector))
 print(minimum(vpl_Vector))
 print(maximum(vpl_Vector))
 
@@ -42,3 +45,22 @@ end
 matrix_from_multiplication = vpl_Vector * transpose(interval_vector)
 
 println(matrix_from_multiplication)
+
+# Gráfico de superfície (heatmap) da matriz
+heatmap(matrix_from_multiplication, xlabel="Índice", ylabel="VPL", title="Heatmap da Matriz Resultante")
+
+# Gráfico de linhas das médias por coluna
+mean_values = mean(matrix_from_multiplication, dims=1)[:]  # médias por coluna
+plot(mean_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
+
+# Gráfico de barras das médias por linha
+bar(mean_rows, xlabel="Linha", ylabel="Valor Médio", title="Médias por Linha")
+
+# Histograma dos valores na matriz
+histogram(matrix_from_multiplication[:], bins=20, xlabel="Valor", ylabel="Frequência", title="Histograma dos Valores na Matriz")
+
+# Boxplot dos valores na matriz
+boxplot(matrix_from_multiplication, xlabel="VPL", ylabel="Valor", title="Boxplot dos Valores na Matriz")
+
+# Violin plot
+violin(matrix_from_multiplication', xlabel="VPL", ylabel="Valor", title="Violin Plot dos Valores na Matriz")
