@@ -1,3 +1,5 @@
+import Pkg
+Pkg.add("Plots")
 using Plots
 using Statistics
 using StatsPlots
@@ -38,9 +40,6 @@ print(minimum(vpl_Vector))
 print(maximum(vpl_Vector))
 
 interval_vector = range(0, stop=1, length=100)
-for value in interval_vector
-    println(value)
-end
 
 # Gráfico dos vpls gerados
 plot(vpl_Vector, xlabel="Índice", ylabel="Valor Gerado VPL", title="VPL Gerado")
@@ -51,7 +50,9 @@ plot(interval_vector, xlabel="Índice", ylabel="% Entrada no Investimento", titl
 # Compute the outer product of the two vectors
 matrix_from_multiplication = vpl_Vector * transpose(interval_vector)
 
-result = mean_of_lowest_values(matrix_from_multiplication)
+#Get the mean for the 5% lowest values from each column of given matrix for risk matric
+mean_of_lowest_values = mean_of_lowest_values(matrix_from_multiplication)
+plot(mean_of_lowest_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
 
 println(matrix_from_multiplication)
 
