@@ -21,14 +21,24 @@ function Aggregate_FCFE_To_Future_Value(value::Float64, discount_rate::Float64)
     return value * (1 + discount_rate)
 end
 
-function Calculate_Cash_Flow_Future_Value(FCFE_Objects::Vector{FCFE_Object}, discount_rate::Float64, fees_rate::Float64)
+function Select_Fee_Rate(fees_rates::Vector{Float64}, debt_value::Float64)
+    if (debt_value <= 100000 )
+        return fees_rates[1]
+    elseif (debt_value <= 1000000)
+        return fees_rates[2]
+    else
+        return fees_rates[3]
+    end
+end
+
+function Calculate_Cash_Flow_Future_Value(FCFE_Objects::Vector{FCFE_Object}, discount_rate::Float64, fees_rates::Vector{Float64})
     counter::Int16 = 1
     caixa_Agregado::Float64 = 0
     divida::Float64 = 0
     while counter <= length(FCFE_Objects)
         future_value = Aggregate_FCFE_To_Future_Value(caixa_Agregado, discount_rate)
         fluxo_de_caixa = FCFE_Objects[counter].FCFE
-        caixa_Agregado = future_value + fluxo_de_caixa + divida * (1 + fees_rate)
+        caixa_Agregado = future_value + fluxo_de_caixa + divida * (1 + Select_Fee_Rate(fees_rates, divida))
         if (caixa_Agregado <= 0)
             divida = caixa_Agregado
             caixa_Agregado = 0
@@ -55,8 +65,8 @@ function Calculate_Cash_Flow_Present_Value(FCFE_Objects::Vector{FCFE_Object}, di
     return result
 end
 
-function Calculate_UFV_Future_Valuation(generation_Collection::Vector{Float64}, discount_rate::Float64, fees_rate::Float64)
-    Calculate_Cash_Flow_Future_Value(Build_Discounted_FCFE_Collection(generation_Collection), discount_rate, fees_rate)
+function Calculate_UFV_Future_Valuation(generation_Collection::Vector{Float64}, discount_rate::Float64, fees_rates::Vector{Float64})
+    Calculate_Cash_Flow_Future_Value(Build_Discounted_FCFE_Collection(generation_Collection), discount_rate, fees_rates)
 end
 
 function Calculate_UFV_Valuation(generation_Collection::Vector{Float64}, discount_rate::Float64)

@@ -21,7 +21,7 @@ end
 fee_rate_am = Convert_Rates_From_aa_To_am(fee_rate_aa)
 fee_rate_vector::Vector{Float64} = [Convert_Rates_From_aa_To_am(0.08), Convert_Rates_From_aa_To_am(0.10), Convert_Rates_From_aa_To_am(0.15)]
 #Atribui valor para a taxa de variação da distrubuição uniforme
-variation_Rate = 0.1
+variation_Rate = 0.3
 # Constroi vetor [0,100] com 100 intervalos equidistantes representando as entradas do investidor no projeto
 interval_vector = range(0, stop=1, length=100)
 
@@ -31,7 +31,7 @@ interval_vector = range(0, stop=1, length=100)
 
 #Future Value With Debt WorkFlow
 #Calcula o VPL utilizando valores futuros e acrescentando os parametros de divida
-ufv_valuation_With_Debt = Calculate_UFV_Future_Valuation(g, mensal_capital_rate, fee_rate_am)
+ufv_valuation_With_Debt = Calculate_UFV_Future_Valuation(g, mensal_capital_rate, fee_rate_vector)
 #Valor presente da valuation com debito
 present_value = ufv_valuation_With_Debt/((1 + mensal_capital_rate) ^ length(g))
 
@@ -40,7 +40,7 @@ counter = 0
 vpl_Vector = []
 while counter < 1000
     uniform_Generation = GenerateUniformGeneration(g, variation_Rate)
-    ufv_valuation_result_Uniform_Generation = Calculate_UFV_Future_Valuation(uniform_Generation, mensal_capital_rate, fee_rate_am)
+    ufv_valuation_result_Uniform_Generation = Calculate_UFV_Future_Valuation(uniform_Generation, mensal_capital_rate, fee_rate_vector)
     push!(vpl_Vector, ufv_valuation_result_Uniform_Generation)
     counter += 1
 end
