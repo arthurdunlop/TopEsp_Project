@@ -1,12 +1,14 @@
-#Imports
-# import Pkg
-# Pkg.add("Plots")
-using Plots
-using Statistics
-using StatsPlots
+#Imports packages
+include("Domain.jl")
 include("ValuationFunctions.jl")
 include("GenerationFunctions.jl")
 include("RiskFunctions.jl")
+using Plots
+using Statistics
+using StatsPlots
+using .DiscountCashFlowToPresent
+using .CashFlowWithEntryIntoInvestment
+
 
 #Premissas
 #Geração mensal prevista pelo software PVSyst.
@@ -14,56 +16,32 @@ g = ([188.68	149.67	168.61	155.70	130.07	121.24	143.55	148.77	149.85	161.02	152.
 #Custo de capital calculado a partir do modelo descrito TCC
 mensal_capital_rate = 0.006586444637
 #Taxa de juros
-fee_rate_aa = 0.15
 function Convert_Rates_From_aa_To_am(value_aa::Float64)
     return ( 1 + value_aa) ^ (1/12) - 1
 end
-fee_rate_am = Convert_Rates_From_aa_To_am(fee_rate_aa)
 fee_rate_vector::Vector{Float64} = [Convert_Rates_From_aa_To_am(0.08), Convert_Rates_From_aa_To_am(0.10), Convert_Rates_From_aa_To_am(0.15)]
 #Atribui valor para a taxa de variação da distrubuição uniforme
-variation_Rate = 0.3
+variation_Rate = 0.1
 # Constroi vetor [0,100] com 100 intervalos equidistantes representando as entradas do investidor no projeto
 interval_vector = range(0, stop=1, length=100)
+
 
 ###
 ### G2
 ###
 
 #Future Value With Debt WorkFlow
-#Calcula o VPL utilizando valores futuros e acrescentando os parametros de divida
-ufv_valuation_With_Debt = Calculate_UFV_Future_Valuation(g, mensal_capital_rate, fee_rate_vector)
-#Valor presente da valuation com debito
-present_value = ufv_valuation_With_Debt/((1 + mensal_capital_rate) ^ length(g))
 
-#1000 Simulações de VPL
-counter = 0
-vpl_Vector = []
-while counter < 1000
-    uniform_Generation = GenerateUniformGeneration(g, variation_Rate)
-    ufv_valuation_result_Uniform_Generation = Calculate_UFV_Future_Valuation(uniform_Generation, mensal_capital_rate, fee_rate_vector)
-    push!(vpl_Vector, ufv_valuation_result_Uniform_Generation)
-    counter += 1
-end
-# Compute the outer product of the two vectors
-simulated_vpls_for_privet_capital_rate = vpl_Vector * transpose(interval_vector)
-
-#Get the mean for the 5% lowest values from each column of given matrix for risk matric
-mean_of_lowest_values = Mean_of_lowest_values(simulated_vpls_for_privet_capital_rate)
-plot(mean_of_lowest_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
-
-#Metrics
-# Boxplot dos valores na matriz
-boxplot(simulated_vpls_for_privet_capital_rate, xlabel="% Entrada no Investimento", ylabel="VPL", title="Boxplot dos Valores na Matriz", label = false)
-
-# Gráfico de linhas das médias por coluna
-mean_values = mean(simulated_vpls_for_privet_capital_rate, dims=1)[:]  # médias por coluna
-plot(mean_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
+#Calcula o VPL utilizando acrescentando os parametros de divida
+ufv_valuation_With_Debt = Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rate_vector, 1)
+    
 
 ###
 ### G1
 ###
 
 #Discounted Work Flow
+###
 #Calculo do VPL com as informações de geração do PVSyst e custo de capital do modelo TCC
 ufv_valuation_result = Calculate_UFV_Valuation(g, mensal_capital_rate)
 
@@ -89,3 +67,5 @@ boxplot(simulated_vpls_for_privet_capital_rate, xlabel="% Entrada no Investiment
 # Gráfico de linhas das médias por coluna
 mean_values = mean(simulated_vpls_for_privet_capital_rate, dims=1)[:]  # médias por coluna
 plot(mean_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
+
+
