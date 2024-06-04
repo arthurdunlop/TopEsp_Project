@@ -72,7 +72,7 @@ module CashFlowWithEntryIntoInvestment
             if (debt_value <= key)
                 return result += (1 + value) * debt_value
             else
-                result += (1 + value) * debt_value
+                result += (1 + value) * key
                 debt_value -= key
             end
         end
@@ -91,10 +91,14 @@ module CashFlowWithEntryIntoInvestment
         counter::Int16 = 1
         caixa_Agregado::Float64 = 0
         debt_amount::Float64 = 0
+        initial_debt::Float64 = 0
         while counter <= length(FCFE_Object_With_Entry_Into_Investment)
             future_value = Aggregate_FCFE_To_Future_Value_For_Next_Period(caixa_Agregado, discount_rate)
             fluxo_de_caixa = FCFE_Object_With_Entry_Into_Investment[counter].FCFE
-            caixa_Agregado = future_value + fluxo_de_caixa + Calculate_Debt_Amount(fees_rates, debt_amount)
+            if (counter == 1)
+                initial_debt = Calculate_Debt_Amount(fees_rates, FCFE_Object_With_Entry_Into_Investment[counter].Divida_Inicial)
+            end
+            caixa_Agregado = future_value + fluxo_de_caixa + Calculate_Debt_Amount(fees_rates, debt_amount) + initial_debt
             if (caixa_Agregado <= 0)
                 debt_amount = caixa_Agregado
                 caixa_Agregado = 0
@@ -103,11 +107,7 @@ module CashFlowWithEntryIntoInvestment
             end
             counter += 1
         end
-        if (caixa_Agregado > 0)
-            return caixa_Agregado
-        else
-            return debt_amount
-        end
+            return caixa_Agregado + debt_amount
     end
 
     function Calculate_UFV_Valuation_With_Debt(
