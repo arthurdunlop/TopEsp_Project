@@ -20,20 +20,21 @@ module CashFlowWithEntryIntoInvestmentDomain
         Depreciacao::Float64 = 2815000.0 / Numero_Periodos_Totais
         EBT::Float64 = EBITDA - Depreciacao
         Imposto_Renda::Float64 = Receita_Bruta * 0.34 * 0.32
-        CAPEX::Float64 = Calculate_CAPEX_With_Entry_Into_Investment(Data, Entry_Into_Investment)
+        CAPEX::Float64 = Calculate_CAPEX_With_Entry_Into_Investment(Data)
+        CAPEX_IN_DEBT::Float64 = Calculate_Inicial_Debt(CAPEX, Entry_Into_Investment)
+        CAPEX_CAPITAL_PROPRIO = CAPEX - CAPEX_IN_DEBT
         FCFE::Float64 = EBT - Imposto_Renda + Depreciacao
-        Divida_Inicial::Float64 = Calculate_Inicial_Debt(CAPEX, Entry_Into_Investment)
     end
 
-    function Calculate_CAPEX_With_Entry_Into_Investment(date::DateTime, entry_Into_Investment::Float64)
+    function Calculate_CAPEX_With_Entry_Into_Investment(date::DateTime)
         if (month(date) == month(now()) && year(date) == year(now()))
-            return Float64(3850412.0 * entry_Into_Investment)
+            return Float64(3850412.0)
         end
         return Float64(0)
     end
 
     function Calculate_Inicial_Debt(capex::Float64, entry_Into_Investment::Float64)
-        return (1-entry_Into_Investment) * capex
+        return (Float64(1) - entry_Into_Investment) * capex
     end
 
     function Calculate_Liquid_Tax(Index::Int64)

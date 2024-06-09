@@ -4,6 +4,8 @@ module DiscountCashFlowToPresent
     using Dates
     using .DiscountCashFlowToPresentDomain
 
+    export Calculate_UFV_Valuation, Discount_FCFE_To_Present_Value
+    
     function Build_FCFE_Collection(generation_Collection::Vector{Float64})
         FCFE_Objects::Vector{FCFE_Object} = []
         date = Dates.now()
@@ -36,14 +38,17 @@ module DiscountCashFlowToPresent
         Calculate_Cash_Flow_Present_Value(Build_FCFE_Collection(generation_Collection), discount_rate)
     end
 
-    export Calculate_UFV_Valuation, Discount_FCFE_To_Present_Value
 end
 
 ### Cash Flow to with entry into investment
 module CashFlowWithEntryIntoInvestment 
     include("Domain.jl")
     using Dates
+    # using .DiscountCashFlowToPresent
+    # using .DiscountCashFlowToPresentDomain
     using .CashFlowWithEntryIntoInvestmentDomain
+   
+    export Calculate_UFV_Valuation_With_Debt
 
     function Build_FCFE_Object_With_Entry_Into_Investment_Collection(generation_Collection::Vector{Float64}, entry_Into_Investment::Float64)
         FCFE_Objects_With_Entry_Into_Investment::Vector{FCFE_Object_With_Entry_Into_Investment} = []
@@ -68,12 +73,18 @@ module CashFlowWithEntryIntoInvestment
 
     function Calculate_Debt_Amount(fees_rates::Dict{Float64, Float64}, debt_value::Float64)
         result::Float64 = 0
+        max_index::Float64 = length(keys(fees_rates))
         for (key, value) in fees_rates
             if (debt_value <= key)
                 return result += (1 + value) * debt_value
             else
-                result += (1 + value) * key
-                debt_value -= key
+                index = findfirst(==(key), collect(keys(fees_rates)))
+                if (index == max_index)
+                    result += (1 + value) * debt_value
+                else
+                    result += (1 + value) * key
+                    debt_value -= key
+                end
             end
         end
         return result
@@ -82,23 +93,22 @@ module CashFlowWithEntryIntoInvestment
     function Aggregate_FCFE_To_Future_Value_For_Next_Period(value::Float64, discount_rate::Float64)
         return value * (1 + discount_rate)
     end
-
+    
     function Calculate_Cash_Flow_Future_Value(
-            FCFE_Object_With_Entry_Into_Investment::Vector{FCFE_Object_With_Entry_Into_Investment},
-            discount_rate::Float64, 
-            fees_rates::Dict{Float64, Float64}
+        FCFE_Object_With_Entry_Into_Investment::Vector{FCFE_Object_With_Entry_Into_Investment},
+        discount_rate::Float64, 
+        fees_rates::Dict{Float64, Float64}
         )
         counter::Int16 = 1
         caixa_Agregado::Float64 = 0
         debt_amount::Float64 = 0
-        initial_debt::Float64 = 0
+        capex_in_debt::Float64 = Calculate_Debt_Amount(fees_rates, FCFE_Object_With_Entry_Into_Investment[counter].CAPEX_IN_DEBT)
+        private_capex::Float64 = FCFE_Object_With_Entry_Into_Investment[counter].CAPEX_CAPITAL_PROPRIO
         while counter <= length(FCFE_Object_With_Entry_Into_Investment)
             future_value = Aggregate_FCFE_To_Future_Value_For_Next_Period(caixa_Agregado, discount_rate)
             fluxo_de_caixa = FCFE_Object_With_Entry_Into_Investment[counter].FCFE
-            if (counter == 1)
-                initial_debt = Calculate_Debt_Amount(fees_rates, FCFE_Object_With_Entry_Into_Investment[counter].Divida_Inicial)
-            end
-            caixa_Agregado = future_value + fluxo_de_caixa + Calculate_Debt_Amount(fees_rates, debt_amount) + initial_debt
+            debt_amount = Calculate_Debt_Amount(fees_rates, debt_amount)
+            caixa_Agregado = future_value + fluxo_de_caixa - debt_amount - capex_in_debt
             if (caixa_Agregado <= 0)
                 debt_amount = caixa_Agregado
                 caixa_Agregado = 0
@@ -107,7 +117,8 @@ module CashFlowWithEntryIntoInvestment
             end
             counter += 1
         end
-            return caixa_Agregado + debt_amount
+            private_capex_future_value = private_capex * ((1 + discount_rate)^length(FCFE_Object_With_Entry_Into_Investment))
+            return caixa_Agregado + debt_amount - private_capex_future_value
     end
 
     function Calculate_UFV_Valuation_With_Debt(
@@ -117,16 +128,18 @@ module CashFlowWithEntryIntoInvestment
         entry_Into_Investment::Float64
         )
         return Calculate_Cash_Flow_Future_Value(
-                Build_FCFE_Object_With_Entry_Into_Investment_Collection(
-                    generation_Collection, 
-                    entry_Into_Investment
-                ), 
-                discount_rate, 
-                fees_rates
-            )
+                    Build_FCFE_Object_With_Entry_Into_Investment_Collection(
+                        generation_Collection, 
+                        entry_Into_Investment
+                    ), discount_rate, 
+                    fees_rates
+                    )
     end
 
-    export Calculate_UFV_Valuation_With_Debt
+    function Discount_FCFE_To_Present_Value(value_to_discount::Float64, discount_rate::Float64, time_period::Int64) 
+        return value_to_discount / (1 + discount_rate) ^ time_period
+    end
+
 end
 
 
