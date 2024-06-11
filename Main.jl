@@ -19,7 +19,11 @@ mensal_capital_rate = 0.006586444637
 function Convert_Rates_From_aa_To_am(value_aa::Float64)
     return ( 1 + value_aa) ^ (1/12) - 1
 end
-fee_rates::Dict{Float64, Float64} = Dict(1000 => Convert_Rates_From_aa_To_am(0.08), 100000 => Convert_Rates_From_aa_To_am(0.10), 2000000 => Convert_Rates_From_aa_To_am(0.15))
+fee_rates::Dict{Float64, Float64} = Dict(
+    500000 => Convert_Rates_From_aa_To_am(0.10),
+    1000000 => Convert_Rates_From_aa_To_am(0.15),
+    2000000 => Convert_Rates_From_aa_To_am(0.20)
+    )
 #Atribui valor para a taxa de variação da distrubuição uniforme
 variation_Rate = 0.1
 # Constroi vetor [0,100] com 100 intervalos equidistantes representando as entradas do investidor no projeto
@@ -34,10 +38,7 @@ entriesIntoInvestment = range(0, stop=1, length=100)
 #Calcula o VPL utilizando acrescentando os parametros de divida
 ufv_valuation_With_Debt = Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rates, Float64(1))
 result_present::Float64 = ufv_valuation_With_Debt / ((1 + mensal_capital_rate) ^ length(g))
-ufv_valuation_With_Debt = Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rates, Float64(0.5))
-result_present::Float64 = ufv_valuation_With_Debt / ((1 + mensal_capital_rate) ^ length(g))
-ufv_valuation_With_Debt = Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rates, Float64(0))
-result_present::Float64 = ufv_valuation_With_Debt / ((1 + mensal_capital_rate) ^ length(g))
+
 valuationsForEntries::Vector{Float64} = []
 for entryIntoInvestment in entriesIntoInvestment
     futureResult::Float64 = Float64(Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rates, entryIntoInvestment))

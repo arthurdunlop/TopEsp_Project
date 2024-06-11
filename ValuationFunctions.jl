@@ -101,14 +101,13 @@ module CashFlowWithEntryIntoInvestment
         )
         counter::Int16 = 1
         caixa_Agregado::Float64 = 0
-        debt_amount::Float64 = 0
-        capex_in_debt::Float64 = Calculate_Debt_Amount(fees_rates, FCFE_Object_With_Entry_Into_Investment[counter].CAPEX_IN_DEBT)
+        debt_amount::Float64 = Calculate_Debt_Amount(fees_rates, FCFE_Object_With_Entry_Into_Investment[counter].CAPEX_IN_DEBT)
         private_capex::Float64 = FCFE_Object_With_Entry_Into_Investment[counter].CAPEX_CAPITAL_PROPRIO
         while counter <= length(FCFE_Object_With_Entry_Into_Investment)
             future_value = Aggregate_FCFE_To_Future_Value_For_Next_Period(caixa_Agregado, discount_rate)
             fluxo_de_caixa = FCFE_Object_With_Entry_Into_Investment[counter].FCFE
             debt_amount = Calculate_Debt_Amount(fees_rates, debt_amount)
-            caixa_Agregado = future_value + fluxo_de_caixa - debt_amount - capex_in_debt
+            caixa_Agregado = future_value + fluxo_de_caixa - abs(debt_amount) 
             if (caixa_Agregado <= 0)
                 debt_amount = caixa_Agregado
                 caixa_Agregado = 0
