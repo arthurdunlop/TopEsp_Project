@@ -55,9 +55,6 @@ while counter_ < 100
     matriz[counter_, :] = valuationsForEntries
 end
 
-a = matriz
-print(matriz)
-
 boxplot(matriz, xlabel="% Entrada no Investimento", ylabel="VPL", title="Boxplot dos Valores na Matriz", label = false)
 
 #Get the mean for the 5% lowest values from each column of given matrix for risk matric
@@ -68,6 +65,8 @@ print(mean_of_lowest_values)
 mean_values = mean(matriz, dims=1)[:]  # médias por coluna
 plot(mean_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
 
+# Gráfico de retorno pelo risco
+plot((mean_values, mean_of_lowest_values), xlabel="Retorno", ylabel="Risco", title="Retorno X Risco")
 
 ###
 ### G1
