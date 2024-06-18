@@ -4,8 +4,7 @@ include("ValuationFunctions.jl")
 include("GenerationFunctions.jl")
 include("RiskFunctions.jl")
 using Plots
-using Statistics
-#using StatsPlots
+using StatsPlots
 using .DiscountCashFlowToPresent
 using .CashFlowWithEntryIntoInvestment
 
@@ -39,14 +38,32 @@ entriesIntoInvestment = range(0, stop=1, length=100)
 ufv_valuation_With_Debt = Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rates, Float64(1))
 result_present::Float64 = ufv_valuation_With_Debt / ((1 + mensal_capital_rate) ^ length(g))
 
-valuationsForEntries::Vector{Float64} = []
-for entryIntoInvestment in entriesIntoInvestment
-    futureResult::Float64 = Float64(Calculate_UFV_Valuation_With_Debt(g, mensal_capital_rate, fee_rates, entryIntoInvestment))
-    presentResult::Float64 = futureResult / ((1 + mensal_capital_rate) ^ length(g))
-    push!(valuationsForEntries, presentResult)
+normal_generation = GenerateNormalGeneration(g, 2.)
+
+counter_ = 0
+matriz = Array{Float64}(undef, 10, 100)
+
+while counter_ < 10
+    normal_generation = GenerateNormalGeneration(g, 0.1)
+    valuationsForEntries::Vector{Float64} = []
+    for entryIntoInvestment in entriesIntoInvestment
+        futureResult::Float64 = Float64(Calculate_UFV_Valuation_With_Debt(normal_generation, mensal_capital_rate, fee_rates, entryIntoInvestment))
+        presentResult::Float64 = futureResult / ((1 + mensal_capital_rate) ^ length(g))
+        push!(valuationsForEntries, presentResult)
+    end
+    global counter_ += 1
+    matriz[counter_, :] = valuationsForEntries
 end
 
-plot(valuationsForEntries, xlabel="% Entrada no Investimento", ylabel="VPL", label = false)
+boxplot(matriz, xlabel="% Entrada no Investimento", ylabel="VPL", title="Boxplot dos Valores na Matriz", label = false)
+
+#Get the mean for the 5% lowest values from each column of given matrix for risk matric
+mean_of_lowest_values = Mean_of_lowest_values(matriz)
+
+# Gráfico de linhas das médias por coluna
+mean_values = mean(matriz, dims=1)[:]  # médias por coluna
+plot(mean_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
+
 
 ###
 ### G1
@@ -60,11 +77,11 @@ ufv_valuation_result = Calculate_UFV_Valuation(g, mensal_capital_rate)
 #1000 Simulações de VPL
 counter = 0
 vpl_Vector = []
-while counter < 1000
+while global counter < 1000
     uniform_Generation = GenerateUniformGeneration(g, variation_Rate)
     ufv_valuation_result_Uniform_Generation = Calculate_UFV_Valuation(uniform_Generation, mensal_capital_rate)
     push!(vpl_Vector, ufv_valuation_result_Uniform_Generation)
-    counter = counter + 1
+    global counter +=  1
 end
 # Compute the outer product of the two vectors
 simulated_vpls_for_privet_capital_rate = vpl_Vector * transpose(entriesIntoInvestment)
