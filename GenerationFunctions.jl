@@ -1,5 +1,3 @@
-# import Pkg;
-# Pkg.add("Distributions")
 using Random
 using Distributions
 using Statistics
