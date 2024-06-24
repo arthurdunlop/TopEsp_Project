@@ -17,9 +17,9 @@ function Convert_Rates_From_aa_To_am(value_aa::Float64)
     return ( 1 + value_aa) ^ (1/12) - 1
 end
 fee_rates::Dict{Float64, Float64} = Dict(
-    500000 => Convert_Rates_From_aa_To_am(0.10),
-    1000000 => Convert_Rates_From_aa_To_am(0.40),
-    2000000 => Convert_Rates_From_aa_To_am(0.50)
+    1000000 => Convert_Rates_From_aa_To_am(0.01),
+    2000000 => Convert_Rates_From_aa_To_am(0.10),
+    3000000 => Convert_Rates_From_aa_To_am(0.30)
     )
 #Atribui valor para a taxa de variação da distrubuição uniforme
 variation_Rate = 0.1
@@ -40,7 +40,7 @@ counter_ = 0
 matriz = zeros(Float64, 100, 100)
 
 while counter_ < 100
-    v = GenerateNormalGeneration(g, 120.)
+    v = GenerateNormalGeneration(g, 40.)
     normal_generation = map(x -> x < 0 ? 0.0 : x, v)
     valuationsForEntries::Vector{Float64} = []
     for entryIntoInvestment in entriesIntoInvestment
@@ -63,7 +63,6 @@ mean_values = mean(matriz, dims=1)[:]  # médias por coluna
 plot!(mean_values, label="Média", xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
 
 # Gráfico de retorno pelo risco
-plot!(mean_of_lowest_values, mean_values, xlabel="Coluna", ylabel="Valor Médio", title="Médias por Coluna")
 plot((mean_values, mean_of_lowest_values), xlabel="Retorno", ylabel="Risco", title="Retorno X Risco")
 
 

@@ -9,6 +9,11 @@ function GenerateUniformGeneration(medium_Generation::Vector{Float64}, variation
 end
 
 function GenerateNormalGeneration(medium_Generation::Vector{Float64}, standard_deviation::Float64)
-    dist = Normal(mean(medium_Generation), standard_deviation)
-    return rand(dist, length(medium_Generation))
+    generated_values = Vector{Float64}(undef, length(medium_Generation))
+    for i in 1:length(medium_Generation)
+        dist = Normal(medium_Generation[i], standard_deviation)
+        generated_values[i] = rand(dist)
+    end
+    return generated_values
 end
+
