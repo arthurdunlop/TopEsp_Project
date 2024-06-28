@@ -63,13 +63,17 @@ function Build_FCFE_Object_With_Entry_Into_Investment_Collection(generation_Coll
 end
 
 function Calculate_Debt_Amount(fees_rates::Vector{Float64}, fees_limits::Vector{Float64}, debt_value::Float64)
-    K=length(fees_limits)
-    m = Model(HiGHS.Optimizer)
-    @variable(m,0 <= δ[k = 1:K] <= fees_limits[k])
-    @constraint(m,sum(δ)==debt_value)
-    @objective(m, Min, sum((1+fees_rates[k])*δ[k] for k = 1:K))
-    optimize!(m)
-    return objective_value(m)
+    deltas::Vector{Float64} = Deltas(debt_value, fees_limits)
+    return deltas' * fee_rates
+end
+
+function Deltas(d::Float64, breaks::Vector{Float64})
+    z = zeros(length(breaks)+1)
+    z[1] = min(d,breaks[1])
+    for i = 1:length(breaks)
+        z[i+1] = min(d-sum(z[k] for k = 1:i),breaks[i])
+    end
+    return z
 end
 
 function Aggregate_FCFE_To_Future_Value_For_Next_Period(value::Float64, discount_rate::Float64)
@@ -123,6 +127,3 @@ end
 function Discount_FCFE_To_Present_Value(value_to_discount::Float64, discount_rate::Float64, time_period::Int64) 
     return value_to_discount / (1 + discount_rate) ^ time_period
 end
-
-
-
